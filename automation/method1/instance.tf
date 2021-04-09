@@ -7,23 +7,23 @@ resource "aws_instance" "r100c96" {
     Name = "Terraform-diff-linux"
   }
 
+  provisioner "remote-exec" {
+    inline = [ "sudo hostnamectl set-hostname cloudEc2.technix.com" ]
+    connection {
+      host        = aws_instance.r100c96.public_dns
+      type        = "ssh"
+      user        = "ec2-user"
+      private_key = file("./aws-exam-testing.pem")
+    }
+  }
+
   provisioner "local-exec" {
     command = "echo ${aws_instance.r100c96.public_dns} > inventory"
   }
 
   provisioner "local-exec" {
-    command = "sleep 100"
-  }
-
-  provisioner "local-exec" {
     command = "ansible all -m shell -a 'yum -y install httpd; systemctl restart httpd'"
-    connection {
-      host  = "${aws_instance.r100c96.public_dns}"
-      type  = "ssh"
-      user  = "ec2-user"
-      private_key = file("./aws-exam-testing.pem")
-  		}
-	}
+  }
 }
 
 output "ip" {
